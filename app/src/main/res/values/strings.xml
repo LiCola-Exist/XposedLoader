@@ -1,0 +1,4 @@
+<resources>
+  <string name="app_name">XposedLoader</string>
+  <string name="description">xposed动态加载器</string>
+</resources>
