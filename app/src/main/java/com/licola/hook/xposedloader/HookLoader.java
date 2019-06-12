@@ -39,7 +39,7 @@ public class HookLoader implements IXposedHookLoadPackage {
     String keyLoadPackage = loadPackageParam.packageName;
     final HookModel hookModel = INSTALL_HOOK.get(keyLoadPackage);
     if (hookModel != null) {
-      Log.i(TAG, "开始安装模块，并Hook目标应用");
+      Log.i(TAG, "Hook目标进程的Application启动过程，开始安装模块，并开始实际的Hook操作");
       XposedHelpers.findAndHookMethod(Application.class, "attach", Context.class,
           new XC_MethodHook() {
             @Override
@@ -73,6 +73,8 @@ public class HookLoader implements IXposedHookLoadPackage {
     if (apkFile == null) {
       throw new FileNotFoundException("寻找模块apk文件失败");
     }
+
+    Log.i(TAG, "找到Hook模块 apk:"+apkFile.getAbsolutePath()+" 反射进入Hook模块");
 
     //加载指定的hook具体处理类
     PathClassLoader pathClassLoader = new PathClassLoader(apkFile.getAbsolutePath(),

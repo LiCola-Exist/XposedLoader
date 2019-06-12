@@ -52,6 +52,8 @@ public class AliPayHook implements IXposedHookLoadPackage {
       return;
     }
 
+    LLogger.d("进入Alipay进程");
+
     XposedHelpers.findAndHookMethod("android.app.Activity", lpparam.classLoader, "onResume",
         new XC_MethodHook() {
           @Override
@@ -67,35 +69,36 @@ public class AliPayHook implements IXposedHookLoadPackage {
           protected void afterHookedMethod(MethodHookParam param) throws Throwable {
             Activity activity = (Activity) param.thisObject;
             LLogger.d("捕获到目标Activity的 onCreate事件 :" + activity.toString());
+            LLogger.trace();
             LLogger.d(param.args);
           }
         });
-    XposedHelpers.findAndHookMethod(ClassLoader.class.getName(), lpparam.classLoader, "loadClass",
-        String.class,
+    XposedHelpers.findAndHookMethod(Class.class.getName(), lpparam.classLoader, "forName",
+        String.class,boolean.class,ClassLoader.class,
         new XC_MethodHook() {
           @Override
           protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
             String className = (String) param.args[0];
-            LLogger.d(className);
-            if (className.contains("XposedBridge")) {
-              LLogger.trace("有类尝试加载xopsed");
-            }
-
-            if (className.contains("ScanAttack")) {
-              LLogger.trace("ScanAttack");
-            }
+//            LLogger.d(className);
+//            if (className.contains("XposedBridge")) {
+//              LLogger.trace("有类尝试加载xopsed");
+//            }
+//
+//            if (className.contains("ScanAttack")) {
+//              LLogger.trace("ScanAttack");
+//            }
           }
 
-          @Override
-          protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-            String className = (String) param.args[0];
-            LLogger.d(className);
-            if (className.contains("XposedBridge")) {
-            }
-
-            if (className.contains("ScanAttack")) {
-            }
-          }
+//          @Override
+//          protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+//            String className = (String) param.args[0];
+//            LLogger.d(className);
+//            if (className.contains("XposedBridge")) {
+//            }
+//
+//            if (className.contains("ScanAttack")) {
+//            }
+//          }
         });
 
     //目前大概能确定 ScanAttack类负责相关Hook检测
@@ -124,29 +127,19 @@ public class AliPayHook implements IXposedHookLoadPackage {
 //        });
 
     //尝试找到阿里相关Aty 会触发XposedHook检测机制
-    Method method = XposedHelpers.findMethodBestMatch(
-        XposedHelpers.findClass("com.eg.android.AlipayGphone.AlipayLogin", lpparam.classLoader),
+    Class<?> alipayLoginAty = XposedHelpers
+        .findClass("com.alipay.mobile.quinox.LauncherActivity", lpparam.classLoader);
+
+    XposedHelpers.findAndHookMethod(alipayLoginAty, "onCreate", Bundle.class, new XC_MethodHook() {
+      @Override
+      protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+        LLogger.d("进入登录页 Create方法");
+      }
+    });
+
+    Method method2 = XposedHelpers.findMethodBestMatch(
+        XposedHelpers.findClass("com.alipay.mobile.security.login.ui.RecommandAlipayUserLoginActivity", lpparam.classLoader),
         "onCreate", Bundle.class);
-    LLogger.d(method);
-
-//    XposedHelpers.findAndHookMethod("com.eg.android.AlipayGphone.AlipayLogin", lpparam.classLoader,
-//        "onResume", new XC_MethodHook() {
-//          @Override
-//          protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-//            LLogger.d("onResume", param.method, param.thisObject);
-//          }
-//        });
-
-//    XposedHelpers
-//        .findAndHookMethod(View.class.getName(),
-//            lpparam.classLoader, "setOnClickListener", OnClickListener.class, new XC_MethodHook() {
-//
-//              @Override
-//              protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-//                LLogger.d("OnClickListener", param.method, param.thisObject);
-//                LLogger.d("OnClickListener", param.args);
-//              }
-//            });
 
   }
 }
